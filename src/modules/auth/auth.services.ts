@@ -34,7 +34,7 @@ const signin = async (email: string, password: string) => {
             throw new Error("Invalid password.");
         }
         const mySecrete= config.jwtSecret;
-        const token=jwt.sign({email:user.email,id:user.id},mySecrete as string,{expiresIn:'7d'});
+        const token=jwt.sign({id:user.id,email:user.email,role:user.role},mySecrete as string,{expiresIn:'7d'});
 
         return {token,user};
 

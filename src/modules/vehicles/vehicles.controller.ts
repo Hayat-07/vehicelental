@@ -58,7 +58,7 @@ export const getVehicleById = async (req: Request, res: Response) => {
 
     try {
         const { vehicleId } = req.params;
-        const result = await vehiclesServices.getVehicleById(vehicleId as string);
+        const result = await vehiclesServices.getVehicleById(Number(vehicleId));;
 
         res.status(200).json({
             success: true,
@@ -78,7 +78,7 @@ export const getVehicleById = async (req: Request, res: Response) => {
 
 export const updateVehicle = async (req: Request, res: Response) => {
     try {
-        const {vehicleId} = req.params;
+        const { vehicleId } = req.params;
         const { vehicle_name, type, registration_number, daily_rent_price, availability_status } = req.body;
         const result = await vehiclesServices.updateVehicle(vehicle_name, type, registration_number, daily_rent_price, availability_status, vehicleId as string);
 

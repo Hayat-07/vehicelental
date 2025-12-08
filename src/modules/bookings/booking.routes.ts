@@ -1,14 +1,14 @@
-// import {Router} from 'express';
+import {Router} from 'express';
+import { bookingController } from './booking.controller';
+import  auth  from '../../middleware/auth';
 
-// const router= Router();
+const router= Router();
 
-// router.post('/api/v1/bookings', );
-// router.get('/api/v1/bookings', );
-// router.put('/api/v1/bookings/:bookingId', );
-
-
-
-
+router.post('/',auth(), bookingController.createBooking);
+router.get('/',auth(), bookingController.getAllBookings);
+router.put('/:bookingId',auth(), bookingController.updateBooking);
 
 
-// export const usersRoutes= router;
+
+
+export const bookingsRoutes = router;

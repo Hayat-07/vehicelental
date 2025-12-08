@@ -1,5 +1,6 @@
+/// <reference path="../types/express/index.d.ts" />
 import { Request, Response, NextFunction } from "express"
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const auth = () => {
 
@@ -17,7 +18,7 @@ const auth = () => {
         if (!decodeJWT) {
             return res.status(401).json({ message: 'Unauthorized: Invalid token' });
         }
-
+        req.user = decodeJWT as JwtPayload;
         // console.log("Decoded jwt from auth.ts ::", decodeJWT);
         next();
 

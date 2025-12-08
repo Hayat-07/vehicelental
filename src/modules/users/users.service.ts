@@ -1,4 +1,4 @@
-import { get } from 'http';
+
 import { pool } from '../../config/db';
 
 const getAllUsers = async () => {

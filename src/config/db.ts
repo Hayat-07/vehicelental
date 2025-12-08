@@ -36,16 +36,17 @@ const initDB = async () => {
         `);
 
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS bookings (
-                id SERIAL PRIMARY KEY,
-                customer_id INTEGER REFERENCES users(id),
-                vehicle_id INTEGER REFERENCES vehicles(id),
-                rent_start_date DATE NOT NULL,
-                rent_end_date DATE NOT NULL CHECK (rent_end_date > rent_start_date),
-                total_price NUMERIC NOT NULL CHECK (total_price > 0),
-                status VARCHAR(100) NOT NULL CHECK (status IN ('active', 'returned', 'cancelled'))
-            );
-        `);
+        CREATE TABLE IF NOT EXISTS bookings (
+        id SERIAL PRIMARY KEY,
+        customer_id INTEGER REFERENCES users(id),
+        vehicle_id INTEGER REFERENCES vehicles(id),
+        rent_start_date DATE NOT NULL,
+        rent_end_date DATE NOT NULL CHECK (rent_end_date > rent_start_date),
+        total_price NUMERIC NOT NULL CHECK (total_price > 0),
+        status VARCHAR(100) NOT NULL CHECK (status IN ('active', 'returned', 'cancelled'))
+    )
+`);
+
 
         console.log('Database initialized from initDB on db.ts page');
     } catch (err) {
