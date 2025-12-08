@@ -20,7 +20,7 @@ const initDB = async () => {
                 email VARCHAR(100) UNIQUE NOT NULL,
                 password VARCHAR(100) NOT NULL CHECK (char_length(password) >= 6),
                 phone VARCHAR(15) NOT NULL,
-                role VARCHAR(100)
+                role VARCHAR(100) CHECK (role IN ('admin', 'customer'))
             );
         `);
 
