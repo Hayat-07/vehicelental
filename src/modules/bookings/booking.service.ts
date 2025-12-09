@@ -12,7 +12,7 @@ const createBooking = async (
     rent_end_date: string
 ) => {
 
-   
+
     const vehicleResult = await pool.query(
         `SELECT vehicle_name, daily_rent_price FROM vehicles WHERE id = $1`,
         [vehicle_id]
@@ -24,7 +24,7 @@ const createBooking = async (
 
     const vehicle = vehicleResult.rows[0];
 
-    
+
     const startDate = new Date(rent_start_date);
     const endDate = new Date(rent_end_date);
     const days = Math.ceil(
@@ -37,7 +37,7 @@ const createBooking = async (
 
     const total_price = days * Number(vehicle.daily_rent_price);
 
- 
+
     const result = await pool.query(
         `
     WITH new_booking AS (
@@ -128,23 +128,65 @@ const getAllBookings = async (user: JwtPayload) => {
 
 const updateBooking = async (bookingId: number, status: string, user: JwtPayload) => {
 
-    const getUserById = await pool.query(`SELECT * FROM bookings WHERE id=$1`, [bookingId]);
-    // console.log(getUserById);
-    if (getUserById.rowCount === 0) {
-        throw new Error('Booking not found');
-    }
-    const result = await pool.query(`UPDATE bookings SET status=$1 WHERE id=$2 RETURNING *`, [status, bookingId]);
-    
-    
-    
-    // console.log(result);
-    if (status === "returned") {
-        const newResult = { ...result.rows[0], "vehicle": { "availability_status": "available" } };
-        return newResult;
-    }
-    return result.rows[0];
-};
 
+    const getBookingById = await pool.query(
+        `SELECT * FROM bookings WHERE id = $1`,
+        [bookingId]
+    );
+
+    if (getBookingById.rowCount === 0) {
+        throw new Error("Booking not found");
+    }
+
+    let result;
+
+
+    if (user.role === "customer") {
+
+        result = await pool.query(
+            `
+            UPDATE bookings
+            SET status = $1
+            WHERE id = $2
+            RETURNING *;
+            `,
+            [status, bookingId]
+        );
+
+        return result.rows[0];
+    }
+
+
+    if (user.role === "admin") {
+
+        result = await pool.query(
+            `
+            WITH updated_booking AS (
+                UPDATE bookings
+                SET status = $1
+                WHERE id = $2
+                RETURNING *
+            ),
+            updated_vehicle AS (
+                UPDATE vehicles
+                SET availability_status = 'available'
+                WHERE id = (SELECT vehicle_id FROM updated_booking)
+                RETURNING availability_status
+            )
+            SELECT
+                ub.*,
+                json_build_object(
+                    'availability_status', uv.availability_status
+                ) AS vehicle
+            FROM updated_booking ub
+            JOIN updated_vehicle uv ON TRUE;
+            `,
+            [status, bookingId]
+        );
+
+        return result.rows[0];
+    }
+};
 
 
 
