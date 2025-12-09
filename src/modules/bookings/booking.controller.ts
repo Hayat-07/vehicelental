@@ -9,10 +9,10 @@ const createBooking = async (req: Request, res: Response) => {
     try {
         const { customer_id, vehicle_id, rent_start_date, rent_end_date } = req.body;
         const result = await bookingServices.createBooking(customer_id, vehicle_id, rent_start_date, rent_end_date);
-      
+        // const result=[{name:"test"}]; //temporary fix for error
         res.status(200).json({
             success: true,
-            message:"Booking created successfully",
+            message: "Booking created successfully",
             data: result
         });
 
@@ -51,8 +51,8 @@ const updateBooking = async (req: Request, res: Response) => {
     try {
         const { status } = req.body;
         const { bookingId } = req.params;
-        const result = await bookingServices.updateBooking(Number(bookingId), status,req.user as JwtPayload);
-        
+        const result = await bookingServices.updateBooking(Number(bookingId), status, req.user as JwtPayload);
+
         res.status(200).json({
             success: true,
             message: "Booking updated successfully",
