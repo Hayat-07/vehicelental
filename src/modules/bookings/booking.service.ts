@@ -6,40 +6,40 @@ import { pool } from "../../config/db";
 
 
 const createBooking = async (
-  customer_id: number,
-  vehicle_id: number,
-  rent_start_date: string,
-  rent_end_date: string
+    customer_id: number,
+    vehicle_id: number,
+    rent_start_date: string,
+    rent_end_date: string
 ) => {
 
-  // 1️⃣ First check if vehicle exists
-  const vehicleResult = await pool.query(
-    `SELECT vehicle_name, daily_rent_price FROM vehicles WHERE id = $1`,
-    [vehicle_id]
-  );
+    // 1️⃣ First check if vehicle exists
+    const vehicleResult = await pool.query(
+        `SELECT vehicle_name, daily_rent_price FROM vehicles WHERE id = $1`,
+        [vehicle_id]
+    );
 
-  if (vehicleResult.rowCount === 0) {
-    throw new Error("Vehicle not found");
-  }
+    if (vehicleResult.rowCount === 0) {
+        throw new Error("Vehicle not found");
+    }
 
-  const vehicle = vehicleResult.rows[0];
+    const vehicle = vehicleResult.rows[0];
 
-  // 2️⃣ Calculate total price
-  const startDate = new Date(rent_start_date);
-  const endDate = new Date(rent_end_date);
-  const days = Math.ceil(
-    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
+    // 2️⃣ Calculate total price
+    const startDate = new Date(rent_start_date);
+    const endDate = new Date(rent_end_date);
+    const days = Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
-  if (days <= 0) {
-    throw new Error("rent_end_date must be after rent_start_date");
-  }
+    if (days <= 0) {
+        throw new Error("rent_end_date must be after rent_start_date");
+    }
 
-  const total_price = days * Number(vehicle.daily_rent_price);
+    const total_price = days * Number(vehicle.daily_rent_price);
 
-  // 3️⃣ Insert + return booking WITH nested vehicle object
-  const result = await pool.query(
-    `
+    // 3️⃣ Insert + return booking WITH nested vehicle object
+    const result = await pool.query(
+        `
     WITH new_booking AS (
       INSERT INTO bookings (
         customer_id,
@@ -67,16 +67,16 @@ const createBooking = async (
     FROM new_booking nb
     JOIN vehicles v ON nb.vehicle_id = v.id;
     `,
-    [
-      customer_id,
-      vehicle_id,
-      rent_start_date,
-      rent_end_date,
-      total_price,
-    ]
-  );
+        [
+            customer_id,
+            vehicle_id,
+            rent_start_date,
+            rent_end_date,
+            total_price,
+        ]
+    );
 
-  return result.rows[0];
+    return result.rows[0];
 };
 
 
@@ -88,18 +88,39 @@ const createBooking = async (
 
 
 const getAllBookings = async (user: JwtPayload) => {
-    const result = await pool.query(`SELECT * FROM bookings`);
-    // console.log(result);
+    let query = `
+        SELECT 
+            b.id,
+            b.customer_id,
+            b.vehicle_id,
+            b.rent_start_date,
+            b.rent_end_date,
+            b.total_price,
+            b.status,
+            json_build_object(
+                'vehicle_name', v.vehicle_name,
+                'registration_number', v.registration_number,
+                'type', v.vehicle_type
+            ) AS vehicle
+            ${user.role === "admin" ? `,
+            json_build_object(
+                'name', c.name,
+                'email', c.email
+            ) AS customer` : ""}
+        FROM bookings b
+        JOIN vehicles v ON b.vehicle_id = v.id
+        ${user.role === "admin" ? "JOIN customers c ON b.customer_id = c.id" : ""}
+        ${user.role === "customer" ? "WHERE b.customer_id = $1" : ""}
+        ORDER BY b.id DESC
+    `;
 
+    const params = user.role === "customer" ? [user.id] : [];
 
-
-    if (user.role === "customer") {
-        return result.rows.filter(booking => booking.customer_id === user.id);
-    }
-
+    const result = await pool.query(query, params);
 
     return result.rows;
 };
+
 
 
 
