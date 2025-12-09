@@ -12,7 +12,7 @@ const createBooking = async (
     rent_end_date: string
 ) => {
 
-    // 1️⃣ First check if vehicle exists
+   
     const vehicleResult = await pool.query(
         `SELECT vehicle_name, daily_rent_price FROM vehicles WHERE id = $1`,
         [vehicle_id]
@@ -24,7 +24,7 @@ const createBooking = async (
 
     const vehicle = vehicleResult.rows[0];
 
-    // 2️⃣ Calculate total price
+    
     const startDate = new Date(rent_start_date);
     const endDate = new Date(rent_end_date);
     const days = Math.ceil(
@@ -37,7 +37,7 @@ const createBooking = async (
 
     const total_price = days * Number(vehicle.daily_rent_price);
 
-    // 3️⃣ Insert + return booking WITH nested vehicle object
+ 
     const result = await pool.query(
         `
     WITH new_booking AS (
@@ -134,7 +134,10 @@ const updateBooking = async (bookingId: number, status: string, user: JwtPayload
         throw new Error('Booking not found');
     }
     const result = await pool.query(`UPDATE bookings SET status=$1 WHERE id=$2 RETURNING *`, [status, bookingId]);
-    console.log(result);
+    
+    
+    
+    // console.log(result);
     if (status === "returned") {
         const newResult = { ...result.rows[0], "vehicle": { "availability_status": "available" } };
         return newResult;
